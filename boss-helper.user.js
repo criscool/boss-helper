@@ -253,6 +253,18 @@
     return Boolean(getKeywordSkipReason(text, settings));
   }
 
+  function getIncludeKeywordReason(text, settings = state.settings) {
+    const includeKeywords = parseKeywords(settings.includeKeywords);
+    if (includeKeywords.length > 0 && !containsAnyKeyword(text, includeKeywords)) {
+      return `未命中必须包含：${includeKeywords.slice(0, 5).join("/")}`;
+    }
+    return "";
+  }
+
+  function shouldSkipAfterOpenByKeyword(text, settings = state.settings) {
+    return Boolean(getIncludeKeywordReason(text, settings));
+  }
+
   function getExcludeKeywordReason(text, settings = state.settings) {
     const excludeKeywords = parseKeywords(settings.excludeKeywords);
     const excluded = excludeKeywords.find((keyword) => normalizeTextValue(text).toLowerCase().includes(keyword.toLowerCase()));
@@ -498,7 +510,7 @@
     }
 
     const detailText = getDetailText();
-    const keywordReason = getKeywordSkipReason(`${cardText} ${detailText}`);
+    const keywordReason = getIncludeKeywordReason(`${cardText} ${detailText}`);
     if (keywordReason) {
       markStats("skipped");
       state.consecutiveFailures = 0;
@@ -802,7 +814,8 @@
       pickStayButtonText,
       parseKeywords,
       shouldSkipByKeyword,
-      shouldSkipBeforeOpenByKeyword
+      shouldSkipBeforeOpenByKeyword,
+      shouldSkipAfterOpenByKeyword
     };
     return;
   }
