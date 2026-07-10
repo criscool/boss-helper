@@ -131,5 +131,5 @@ node /boss-helper/tests/boss-helper-core.test.js
 Vue.js · Electron · Vite
 DeepAgents
 OfficeCLI
-Linux Do
+Linux Do https://linux.do/
 感谢所有开源贡献者和社区用户。
