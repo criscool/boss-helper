@@ -109,7 +109,7 @@ BOSS Helper 是一个 Tampermonkey 油猴脚本，用于在 BOSS 直聘网页职
 运行核心逻辑测试：
 
 ```bash
-node /Users/ninebot/Documents/AI_coding/boss-helper/tests/boss-helper-core.test.js
+node /boss-helper/tests/boss-helper-core.test.js
 ```
 
 手工测试建议：
