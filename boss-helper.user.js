@@ -10,6 +10,7 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue
+// @grant        GM_registerMenuCommand
 // ==/UserScript==
 
 (function () {
@@ -25,6 +26,8 @@
   const DEFAULT_SETTINGS = {
     intervalSeconds: 60,
     dailyMax: 150,
+    panelCollapsed: false,
+    panelHidden: false,
     includeKeywords: "测试开发,测试工程师,软件测试,自动化测试,测开,QA,质量",
     excludeKeywords: "网络销售,电话销售,销售,客服,社群销售,电销,地推,招商,顾问",
     detailWaitMs: 2000,
@@ -160,6 +163,8 @@
       ...stored,
       intervalSeconds: clampInteger(stored.intervalSeconds, 5, 3600, DEFAULT_SETTINGS.intervalSeconds),
       dailyMax: clampInteger(stored.dailyMax, 1, 1000, DEFAULT_SETTINGS.dailyMax),
+      panelCollapsed: typeof stored.panelCollapsed === "boolean" ? stored.panelCollapsed : DEFAULT_SETTINGS.panelCollapsed,
+      panelHidden: typeof stored.panelHidden === "boolean" ? stored.panelHidden : DEFAULT_SETTINGS.panelHidden,
       includeKeywords: typeof stored.includeKeywords === "string" ? stored.includeKeywords : DEFAULT_SETTINGS.includeKeywords,
       excludeKeywords: typeof stored.excludeKeywords === "string" ? stored.excludeKeywords : DEFAULT_SETTINGS.excludeKeywords
     };
@@ -170,6 +175,8 @@
       ...state.settings,
       intervalSeconds: clampInteger(nextSettings.intervalSeconds, 5, 3600, DEFAULT_SETTINGS.intervalSeconds),
       dailyMax: clampInteger(nextSettings.dailyMax, 1, 1000, DEFAULT_SETTINGS.dailyMax),
+      panelCollapsed: typeof nextSettings.panelCollapsed === "boolean" ? nextSettings.panelCollapsed : state.settings.panelCollapsed,
+      panelHidden: typeof nextSettings.panelHidden === "boolean" ? nextSettings.panelHidden : state.settings.panelHidden,
       includeKeywords: normalizeTextValue(nextSettings.includeKeywords ?? state.settings.includeKeywords),
       excludeKeywords: normalizeTextValue(nextSettings.excludeKeywords ?? state.settings.excludeKeywords)
     };
@@ -623,6 +630,51 @@
         margin-bottom: 8px;
         font-weight: 700;
       }
+      #${PANEL_ID}.is-collapsed {
+        width: 190px;
+        padding: 10px 12px;
+      }
+      #${PANEL_ID}.is-collapsed .bh-header {
+        margin-bottom: 0;
+      }
+      #${PANEL_ID}.is-collapsed .bh-body {
+        display: none;
+      }
+      #${PANEL_ID} .bh-title {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      #${PANEL_ID} .bh-title small {
+        color: #52616b;
+        font-weight: 500;
+      }
+      #${PANEL_ID} .bh-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      #${PANEL_ID} .bh-collapse {
+        border: 0;
+        border-radius: 6px;
+        padding: 5px 8px;
+        background: #52616b;
+        color: #ffffff;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      #${PANEL_ID} .bh-close {
+        width: 26px;
+        height: 26px;
+        border: 0;
+        border-radius: 6px;
+        padding: 0;
+        background: #e55353;
+        color: #ffffff;
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 1;
+      }
       #${PANEL_ID} .bh-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -702,33 +754,51 @@
     panel.id = PANEL_ID;
     panel.innerHTML = `
       <div class="bh-header">
-        <span>BOSS Helper</span>
-        <span data-role="status"></span>
+        <span class="bh-title">
+          <span>BOSS Helper</span>
+          <small data-role="status"></small>
+        </span>
+        <span class="bh-header-actions">
+          <button class="bh-collapse" data-action="collapse" type="button">收起</button>
+          <button class="bh-close" data-action="hide" type="button" title="关闭">×</button>
+        </span>
       </div>
-      <div class="bh-grid">
-        <label>间隔秒数
-          <input data-role="interval" type="number" min="5" max="3600" step="1">
+      <div class="bh-body">
+        <div class="bh-grid">
+          <label>间隔秒数
+            <input data-role="interval" type="number" min="5" max="3600" step="1">
+          </label>
+          <label>每日上限
+            <input data-role="daily-max" type="number" min="1" max="1000" step="1">
+          </label>
+        </div>
+        <label>必须包含
+          <textarea data-role="include-keywords" placeholder="留空表示不过滤必须包含"></textarea>
         </label>
-        <label>每日上限
-          <input data-role="daily-max" type="number" min="1" max="1000" step="1">
+        <label>排除关键词
+          <textarea data-role="exclude-keywords" placeholder="命中任一关键词就跳过"></textarea>
         </label>
+        <div class="bh-actions">
+          <button data-action="start">开始</button>
+          <button data-action="pause" data-kind="secondary">暂停</button>
+          <button data-action="stop" data-kind="danger">停止</button>
+          <button data-action="reset" data-kind="secondary">重置</button>
+        </div>
+        <div class="bh-stats" data-role="stats"></div>
+        <div class="bh-message" data-role="message"></div>
+        <div class="bh-logs" data-role="logs"></div>
       </div>
-      <label>必须包含
-        <textarea data-role="include-keywords" placeholder="留空表示不过滤必须包含"></textarea>
-      </label>
-      <label>排除关键词
-        <textarea data-role="exclude-keywords" placeholder="命中任一关键词就跳过"></textarea>
-      </label>
-      <div class="bh-actions">
-        <button data-action="start">开始</button>
-        <button data-action="pause" data-kind="secondary">暂停</button>
-        <button data-action="stop" data-kind="danger">停止</button>
-        <button data-action="reset" data-kind="secondary">重置</button>
-      </div>
-      <div class="bh-stats" data-role="stats"></div>
-      <div class="bh-message" data-role="message"></div>
-      <div class="bh-logs" data-role="logs"></div>
     `;
+
+    panel.querySelector('[data-action="collapse"]').addEventListener("click", () => {
+      saveSettings({ panelCollapsed: !state.settings.panelCollapsed });
+    });
+
+    panel.querySelector('[data-action="hide"]').addEventListener("click", () => {
+      setMode(MODE.stopped, "面板已关闭");
+      saveSettings({ panelHidden: true });
+      panel.remove();
+    });
 
     panel.querySelector('[data-action="start"]').addEventListener("click", () => {
       saveSettingsFromPanel();
@@ -784,7 +854,9 @@
     if (!panel) return;
 
     const remaining = Math.max(0, state.settings.dailyMax - state.stats.success);
+    panel.classList.toggle("is-collapsed", state.settings.panelCollapsed);
     panel.querySelector('[data-role="status"]').textContent = STATUS_LABELS[state.mode] || state.mode;
+    panel.querySelector('[data-action="collapse"]').textContent = state.settings.panelCollapsed ? "展开" : "收起";
     panel.querySelector('[data-role="interval"]').value = state.settings.intervalSeconds;
     panel.querySelector('[data-role="daily-max"]').value = state.settings.dailyMax;
     panel.querySelector('[data-role="include-keywords"]').value = state.settings.includeKeywords;
@@ -797,11 +869,21 @@
 
   function init() {
     if (!/zhipin\.com$/.test(location.hostname)) return;
+    registerMenuCommands();
+    if (state.settings.panelHidden) return;
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", renderPanel, { once: true });
       return;
     }
     renderPanel();
+  }
+
+  function registerMenuCommands() {
+    if (typeof GM_registerMenuCommand !== "function") return;
+    GM_registerMenuCommand("显示 BOSS Helper", () => {
+      saveSettings({ panelHidden: false, panelCollapsed: false });
+      renderPanel();
+    });
   }
 
   if (globalThis.__BOSS_HELPER_ENABLE_TEST_API__) {

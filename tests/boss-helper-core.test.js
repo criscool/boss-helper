@@ -58,6 +58,8 @@ assert(source.includes("// @match        https://zhipin.com/*"), "script should 
 
 assert.deepStrictEqual(api.DEFAULT_SETTINGS.intervalSeconds, 60);
 assert.deepStrictEqual(api.DEFAULT_SETTINGS.dailyMax, 150);
+assert.strictEqual(api.DEFAULT_SETTINGS.panelCollapsed, false);
+assert.strictEqual(api.DEFAULT_SETTINGS.panelHidden, false);
 assert.strictEqual(api.DEFAULT_SETTINGS.includeKeywords.includes("测试开发"), true);
 assert.strictEqual(api.DEFAULT_SETTINGS.excludeKeywords.includes("网络销售"), true);
 
