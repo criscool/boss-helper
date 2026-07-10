@@ -30,7 +30,7 @@ BOSS Helper 是一个 Tampermonkey 油猴脚本，用于在 BOSS 直聘网页职
 脚本文件路径：
 
 ```text
-/Users/ninebot/Documents/AI_coding/boss-helper/boss-helper.user.js
+/boss-helper/boss-helper.user.js
 ```
 
 ## 使用
