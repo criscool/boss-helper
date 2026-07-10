@@ -126,3 +126,10 @@ node /boss-helper/tests/boss-helper-core.test.js
 - 页面如果强制跳 App 或二维码沟通，脚本会跳过。
 - 如果浏览器标签页休眠，计时可能延迟。
 - 如果页面出现未知弹窗，脚本会保守停止。
+
+致谢
+Vue.js · Electron · Vite
+DeepAgents
+OfficeCLI
+Linux Do
+感谢所有开源贡献者和社区用户。
